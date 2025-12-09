@@ -1,0 +1,568 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>123云盘直链解析工具</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#3B82F6',
+                        secondary: '#10B981',
+                        accent: '#6366F1',
+                        neutral: '#1F2937',
+                        'neutral-light': '#F3F4F6',
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'system-ui', 'sans-serif'],
+                    },
+                }
+            }
+        }
+    </script>
+    <style type="text/tailwindcss">
+        @layer utilities {
+            .content-auto {
+                content-visibility: auto;
+            }
+            .tab-active {
+                @apply border-b-2 border-primary text-primary font-medium;
+            }
+            .tab-inactive {
+                @apply border-b-2 border-transparent text-gray-500 hover:text-gray-700 transition-colors;
+            }
+            .card {
+                @apply bg-white rounded-lg shadow-md p-4 mb-4 transition-all hover:shadow-lg;
+            }
+            .btn {
+                @apply px-4 py-2 rounded-md transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2;
+            }
+            .btn-primary {
+                @apply bg-primary text-white hover:bg-primary/90 focus:ring-primary/50;
+            }
+            .btn-secondary {
+                @apply bg-gray-200 text-gray-800 hover:bg-gray-300 focus:ring-gray-400;
+            }
+            .input-field {
+                @apply w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all;
+            }
+        }
+    </style>
+</head>
+<body class="bg-gray-50 font-sans text-gray-800">
+    <div class="container mx-auto px-4 py-8 max-w-5xl">
+        <!-- 标题区域 -->
+        <header class="mb-8 text-center">
+            <h1 class="text-[clamp(1.5rem,3vw,2.5rem)] font-bold text-neutral mb-2">
+                <i class="fa fa-cloud-download text-primary mr-2"></i>123云盘直链解析工具
+            </h1>
+            <p class="text-gray-600">轻松解析123云盘分享链接，获取直链下载地址</p>
+        </header>
+
+        <!-- 标签页导航 -->
+        <div class="border-b border-gray-200 mb-6">
+            <nav class="-mb-px flex">
+                <button id="parse-tab-btn" class="tab-active px-5 py-3 text-sm font-medium" onclick="switchTab('parse-tab')">
+                    <i class="fa fa-link mr-1"></i>链接解析
+                </button>
+                <button id="config-tab-btn" class="tab-inactive px-5 py-3 text-sm font-medium" onclick="switchTab('config-tab')">
+                    <i class="fa fa-cog mr-1"></i>Authorization配置
+                </button>
+            </nav>
+        </div>
+
+        <!-- 链接解析标签页 -->
+        <div id="parse-tab" class="tab-content">
+            <!-- 链接输入区域 -->
+            <div class="card">
+                <h2 class="text-lg font-semibold mb-3 flex items-center">
+                    <i class="fa fa-link text-primary mr-2"></i>云盘链接
+                </h2>
+                <div class="flex flex-col sm:flex-row gap-3">
+                    <input type="text" id="link-input" class="input-field flex-grow" 
+                           placeholder="示例: https://www.123pan.com/s/xxxxxx" />
+                    <button id="parse-btn" class="btn btn-primary whitespace-nowrap" onclick="parseLink()">
+                        <i class="fa fa-search mr-1"></i>解析
+                    </button>
+                </div>
+            </div>
+
+            <!-- 提取码输入区域 -->
+            <div class="card">
+                <h2 class="text-lg font-semibold mb-3 flex items-center">
+                    <i class="fa fa-key text-primary mr-2"></i>提取码
+                </h2>
+                <div class="flex items-center gap-3">
+                    <label for="pwd-input" class="text-gray-700 whitespace-nowrap">提取码(如需要):</label>
+                    <input type="text" id="pwd-input" class="input-field max-w-[200px]" placeholder="无则留空" />
+                </div>
+            </div>
+
+            <!-- 结果显示区域 -->
+            <div class="card flex-grow">
+                <h2 class="text-lg font-semibold mb-3 flex items-center">
+                    <i class="fa fa-terminal text-primary mr-2"></i>解析结果 & 调试日志
+                </h2>
+                <div class="relative">
+                    <pre id="result-area" class="bg-neutral-light rounded-md p-4 h-64 overflow-auto text-sm font-mono"></pre>
+                    <div id="loading-indicator" class="absolute inset-0 bg-black/5 flex items-center justify-center hidden">
+                        <div class="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 操作按钮区域 -->
+            <div class="flex justify-end gap-3 mt-4">
+                <button class="btn btn-secondary" onclick="clearResults()">
+                    <i class="fa fa-trash mr-1"></i>清空
+                </button>
+                <button class="btn btn-primary" onclick="saveDirectLink()">
+                    <i class="fa fa-save mr-1"></i>保存直链到文件
+                </button>
+            </div>
+        </div>
+
+        <!-- Authorization配置标签页 -->
+        <div id="config-tab" class="tab-content hidden">
+            <!-- Authorization配置 -->
+            <div class="card">
+                <h2 class="text-lg font-semibold mb-3 flex items-center">
+                    <i class="fa fa-shield text-primary mr-2"></i>Authorization信息 (必填)
+                </h2>
+                <div class="flex flex-col gap-2">
+                    <label for="auth-input" class="text-gray-700">Authorization:</label>
+                    <input type="text" id="auth-input" class="input-field" 
+                           placeholder="从123云盘网页端F12抓包获取" />
+                </div>
+            </div>
+
+            <!-- Auth-Key配置 -->
+            <div class="card">
+                <h2 class="text-lg font-semibold mb-3 flex items-center">
+                    <i class="fa fa-hashtag text-primary mr-2"></i>Auth-Key (点击生成)
+                </h2>
+                <div class="flex flex-col sm:flex-row gap-3 items-center">
+                    <input type="text" id="key-input" class="input-field flex-grow" placeholder="Auth-Key" />
+                    <button class="btn btn-secondary whitespace-nowrap" onclick="generateAuthKey()">
+                        <i class="fa fa-random mr-1"></i>随机生成
+                    </button>
+                </div>
+            </div>
+
+            <!-- Auth-Value配置 -->
+            <div class="card">
+                <h2 class="text-lg font-semibold mb-3 flex items-center">
+                    <i class="fa fa-tag text-primary mr-2"></i>Auth-Value (点击生成)
+                </h2>
+                <div class="flex flex-col sm:flex-row gap-3 items-center">
+                    <input type="text" id="value-input" class="input-field flex-grow" placeholder="Auth-Value" />
+                    <button class="btn btn-secondary whitespace-nowrap" onclick="generateAuthValue()">
+                        <i class="fa fa-random mr-1"></i>随机生成
+                    </button>
+                </div>
+            </div>
+
+            <!-- 配置按钮区域 -->
+            <div class="flex flex-col sm:flex-row gap-3 justify-center mt-6">
+                <button class="btn btn-primary" onclick="saveConfig()">
+                    <i class="fa fa-save mr-1"></i>保存配置
+                </button>
+                <button class="btn btn-secondary" onclick="showCurrentConfig()">
+                    <i class="fa fa-eye mr-1"></i>查看当前配置
+                </button>
+            </div>
+
+            <!-- 提示信息 -->
+            <div class="mt-6 p-4 bg-yellow-50 border-l-4 border-yellow-400 rounded-r">
+                <p class="text-yellow-700 flex items-start">
+                    <i class="fa fa-exclamation-triangle mt-1 mr-2"></i>
+                    <span>⚠️ 提示: 1.Authorization需从网页抓包获取 2.Auth-Key/Value点击生成即可 3.保存配置后再解析</span>
+                </p>
+            </div>
+        </div>
+
+        <!-- 页脚 -->
+        <footer class="mt-12 text-center text-gray-500 text-sm">
+            <p>123云盘直链解析工具 &copy; 2023</p>
+        </footer>
+    </div>
+
+    <script>
+        // 全局变量
+        let headers = {
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/127.0.0.0 Safari/537.36 Edg/127.0.0.0",
+            "Connection": "keep-alive",
+            "Sec-Ch-Ua-Mobile": "?0",
+            "Cache-Control": "no-cache",
+            "Sec-Fetch-Dest": "empty",
+            "Accept-Encoding": "gzip, deflate, br, zstd",
+            "Authorization": "",
+            "Content-Type": "application/json",
+            "Pragma": "no-cache",
+            "Sec-Fetch-Site": "same-origin",
+            "Platform": "android",
+            "Accept-Language": "zh-CN,zh;q=0.9,en;q=0.8,en-GB;q=0.7,en-US;q=0.6",
+            "Sec-Fetch-Mode": "cors",
+            "Origin": "https://www.123pan.com",
+            "Sec-Ch-Ua-Platform": "Windows",
+            "App-Version": "39",
+            "Sec-Ch-Ua": "\"Not)A;Brand\";v=\"99\", \"Microsoft Edge\";v=\"127\", \"Chromium\";v=\"127\"",
+            "Auth-Key": "",
+            "Auth-Value": ""
+        };
+        
+        const BASE_URL = "https://www.123pan.com/b/api";
+        let directLink = "";
+
+        // 切换标签页
+        function switchTab(tabId) {
+            // 隐藏所有标签页
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.add('hidden');
+            });
+            
+            // 显示选中的标签页
+            document.getElementById(tabId).classList.remove('hidden');
+            
+            // 更新标签按钮状态
+            if (tabId === 'parse-tab') {
+                document.getElementById('parse-tab-btn').classList.remove('tab-inactive');
+                document.getElementById('parse-tab-btn').classList.add('tab-active');
+                document.getElementById('config-tab-btn').classList.remove('tab-active');
+                document.getElementById('config-tab-btn').classList.add('tab-inactive');
+            } else {
+                document.getElementById('config-tab-btn').classList.remove('tab-inactive');
+                document.getElementById('config-tab-btn').classList.add('tab-active');
+                document.getElementById('parse-tab-btn').classList.remove('tab-active');
+                document.getElementById('parse-tab-btn').classList.add('tab-inactive');
+            }
+        }
+
+        // 日志输出
+        function log(message) {
+            const timestamp = new Date().toTimeString().slice(0, 8);
+            const resultArea = document.getElementById('result-area');
+            resultArea.textContent += `[${timestamp}] ${message}\n`;
+            resultArea.scrollTop = resultArea.scrollHeight;
+        }
+
+        // 生成Auth-Key
+        function generateAuthKey() {
+            const hexChars = '0123456789abcdef';
+            let authKey = '';
+            for (let i = 0; i < 8; i++) {
+                authKey += hexChars[Math.floor(Math.random() * hexChars.length)];
+            }
+            document.getElementById('key-input').value = authKey;
+            log(`已生成Auth-Key: ${authKey}`);
+        }
+
+        // 生成Auth-Value
+        function generateAuthValue() {
+            const timestamp = Math.floor(Date.now() / 1000);
+            const part1 = Math.floor(Math.random() * 9000000) + 1000000;
+            const part2 = Math.floor(Math.random() * 9000000) + 1000000;
+            const authValue = `${timestamp}-${part1}-${part2}`;
+            document.getElementById('value-input').value = authValue;
+            log(`已生成Auth-Value: ${authValue}`);
+        }
+
+        // 保存配置
+        function saveConfig() {
+            const authToken = document.getElementById('auth-input').value.trim();
+            const authKey = document.getElementById('key-input').value.trim();
+            const authValue = document.getElementById('value-input').value.trim();
+            
+            log("【调试】获取到的配置：");
+            log(`  Authorization: ${authToken ? '有值' : '空'} (长度: ${authToken.length})`);
+            log(`  Auth-Key: ${authKey ? '有值' : '空'} (值: ${authKey})`);
+            log(`  Auth-Value: ${authValue ? '有值' : '空'} (值: ${authValue})`);
+            
+            const emptyFields = [];
+            if (!authToken) emptyFields.push("Authorization");
+            if (!authKey) emptyFields.push("Auth-Key");
+            if (!authValue) emptyFields.push("Auth-Value");
+            
+            if (emptyFields.length > 0) {
+                alert(`以下字段不能为空：${emptyFields.join(', ')}`);
+                return;
+            }
+            
+            headers["Authorization"] = authToken;
+            headers["Auth-Key"] = authKey;
+            headers["Auth-Value"] = authValue;
+            
+            alert("配置已保存！");
+            log("配置保存成功，可前往解析标签页使用");
+        }
+
+        // 显示当前配置
+        function showCurrentConfig() {
+            const configText = `当前生效的配置：
+Authorization: ${headers['Authorization'].substring(0, 20)}... (完整长度: ${headers['Authorization'].length})
+Auth-Key: ${headers['Auth-Key']}
+Auth-Value: ${headers['Auth-Value']}`;
+            
+            log(configText);
+            alert(configText);
+        }
+
+        // 清空结果
+        function clearResults() {
+            document.getElementById('result-area').textContent = '';
+            directLink = '';
+            
+            const linkInput = document.getElementById('link-input');
+            if (linkInput.value !== '示例: https://www.123pan.com/s/xxxxxx') {
+                linkInput.value = '示例: https://www.123pan.com/s/xxxxxx';
+            }
+            
+            const pwdInput = document.getElementById('pwd-input');
+            if (pwdInput.value !== '无则留空') {
+                pwdInput.value = '无则留空';
+            }
+        }
+
+        // 保存直链到文件
+        function saveDirectLink() {
+            if (!directLink) {
+                alert("没有可保存的直链!");
+                return;
+            }
+            
+            try {
+                const blob = new Blob([directLink], { type: 'text/plain' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = '123云盘直链.txt';
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+                alert("直链已保存成功！");
+            } catch (e) {
+                alert(`保存失败：${e.message}`);
+            }
+        }
+
+        // 解析链接
+        async function parseLink() {
+            // 清空之前的结果
+            document.getElementById('result-area').textContent = '';
+            directLink = '';
+            
+            // 显示加载指示器
+            document.getElementById('loading-indicator').classList.remove('hidden');
+            
+            const inputLink = document.getElementById('link-input').value.trim();
+            if (inputLink === '示例: https://www.123pan.com/s/xxxxxx') {
+                alert("请输入真实的云盘链接（删除示例文字）");
+                document.getElementById('loading-indicator').classList.add('hidden');
+                return;
+            }
+            
+            let pwd = document.getElementById('pwd-input').value.trim();
+            if (pwd === '无则留空') {
+                pwd = null;
+            }
+            
+            try {
+                // 验证配置是否完整
+                if (!headers["Authorization"] || !headers["Auth-Key"] || !headers["Auth-Value"]) {
+                    alert("请先到「Authorization配置」页填写并保存配置！");
+                    document.getElementById('loading-indicator').classList.add('hidden');
+                    return;
+                }
+                
+                // 提取shareKey
+                const match = inputLink.match(/\/s\/([^?]+)/);
+                if (!match) {
+                    throw new Error("无效的链接格式！正确格式示例：https://www.123pan.com/s/xxxxxx");
+                }
+                const shareKey = match[1];
+                log(`提取到shareKey：${shareKey}`);
+                log(`使用提取码：${pwd || '无'}`);
+                
+                // 获取文件信息
+                const fileInfo = await getFileInfo(shareKey, pwd);
+                log("✅ 获取文件信息成功");
+                
+                // 获取下载URL
+                const downloadUrl = await getDownloadUrl(shareKey, fileInfo);
+                log("✅ 获取下载链接成功");
+                
+                // 提取直链
+                directLink = extractDirectLink(downloadUrl);
+                log("✅ 提取真实直链成功");
+                log(`\n【最终直链】：\n${directLink}`);
+                
+            } catch (e) {
+                log(`❌ 解析失败：${e.message}`);
+                alert(`解析失败：${e.message}\n\n可查看下方日志获取更多信息`);
+            } finally {
+                // 隐藏加载指示器
+                document.getElementById('loading-indicator').classList.add('hidden');
+            }
+        }
+
+        // 获取文件信息
+        async function getFileInfo(shareKey, pwd = null) {
+            const params = new URLSearchParams({
+                "limit": 100,
+                "next": 0,
+                "orderBy": "file_name",
+                "orderDirection": "asc",
+                "shareKey": shareKey,
+                "ParentFileId": 0,
+                "Page": 1,
+                "event": "homeListFile",
+                "operateType": 1
+            });
+            
+            if (pwd) {
+                params.append("SharePwd", pwd);
+            }
+            
+            const url = `${BASE_URL}/share/get?${params.toString()}`;
+            
+            try {
+                const response = await fetch(url, {
+                    method: 'GET',
+                    headers: headers,
+                    timeout: 15000
+                });
+                
+                if (!response.ok) {
+                    const text = await response.text();
+                    throw new Error(`请求失败（状态码：${response.status}）：${text.substring(0, 100)}`);
+                }
+                
+                const data = await response.json();
+                
+                if (data.code !== 0) {
+                    if (data.code === 5103) {
+                        // 提取码错误/需要提取码
+                        log("提示：该分享需要提取码，或提取码错误");
+                        const newPwd = prompt("请输入正确的提取码：");
+                        if (!newPwd || newPwd.trim() === "") {
+                            throw new Error("未输入提取码");
+                        }
+                        return getFileInfo(shareKey, newPwd.trim());
+                    }
+                    throw new Error(`API错误（代码：${data.code}）：${data.message || '未知错误'}`);
+                }
+                
+                const infoList = data.data.InfoList;
+                if (!infoList || infoList.length === 0) {
+                    throw new Error("未找到任何文件信息");
+                }
+                
+                // 取第一个文件
+                const fileInfo = infoList[0];
+                return {
+                    "FileID": fileInfo.FileId,
+                    "S3keyFlag": fileInfo.S3KeyFlag,
+                    "Size": fileInfo.Size,
+                    "Etag": fileInfo.Etag
+                };
+            } catch (e) {
+                throw new Error(`获取文件信息失败：${e.message}`);
+            }
+        }
+
+        // 获取下载URL
+        async function getDownloadUrl(shareKey, fileInfo) {
+            const payload = {
+                "ShareKey": shareKey,
+                "FileID": fileInfo.FileID,
+                "S3keyFlag": fileInfo.S3keyFlag,
+                "Size": fileInfo.Size,
+                "Etag": fileInfo.Etag
+            };
+            
+            const url = `${BASE_URL}/share/download/info`;
+            
+            try {
+                const response = await fetch(url, {
+                    method: 'POST',
+                    headers: headers,
+                    body: JSON.stringify(payload),
+                    timeout: 15000
+                });
+                
+                if (!response.ok) {
+                    const text = await response.text();
+                    throw new Error(`请求失败（状态码：${response.status}）：${text.substring(0, 100)}`);
+                }
+                
+                const data = await response.json();
+                
+                if (data.code !== 0) {
+                    throw new Error(`API错误（代码：${data.code}）：${data.message || '未知错误'}`);
+                }
+                
+                return data.data.DownloadURL;
+            } catch (e) {
+                throw new Error(`获取下载URL失败：${e.message}`);
+            }
+        }
+
+        // 提取直链
+        function extractDirectLink(downloadUrl) {
+            const paramsMatch = downloadUrl.match(/\?params=([^&]+)/);
+            if (!paramsMatch) {
+                throw new Error("无法从下载链接中提取params参数");
+            }
+            
+            let base64Params = paramsMatch[1];
+            
+            try {
+                // 修复base64解码填充问题
+                const padding = 4 - (base64Params.length % 4);
+                if (padding !== 4) {
+                    base64Params += '='.repeat(padding);
+                }
+                
+                // 解码Base64
+                const decoded = atob(base64Params);
+                return decoded;
+            } catch (e) {
+                throw new Error(`解析直链失败：${e.message}（原始params：${base64Params.substring(0, 50)}...）`);
+            }
+        }
+
+        // 页面加载完成后初始化
+        document.addEventListener('DOMContentLoaded', () => {
+            // 尝试从localStorage加载保存的配置
+            const savedHeaders = localStorage.getItem('123pan_headers');
+            if (savedHeaders) {
+                try {
+                    const parsed = JSON.parse(savedHeaders);
+                    headers = { ...headers, ...parsed };
+                    document.getElementById('auth-input').value = headers.Authorization;
+                    document.getElementById('key-input').value = headers['Auth-Key'];
+                    document.getElementById('value-input').value = headers['Auth-Value'];
+                } catch (e) {
+                    console.error('Failed to load saved headers:', e);
+                }
+            }
+            
+            // 保存配置时同时保存到localStorage
+            const originalSaveConfig = saveConfig;
+            saveConfig = function() {
+                originalSaveConfig();
+                localStorage.setItem('123pan_headers', JSON.stringify({
+                    Authorization: headers.Authorization,
+                    'Auth-Key': headers['Auth-Key'],
+                    'Auth-Value': headers['Auth-Value']
+                }));
+            };
+        });
+    </script>
+</body>
+</html>
