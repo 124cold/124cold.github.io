@@ -1,1 +1,328 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>XML分区表解析工具</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: "Microsoft YaHei", sans-serif;
+        }
 
+        body {
+            max-width: 1200px;
+            margin: 2rem auto;
+            padding: 0 1rem;
+            background-color: #f5f5f5;
+        }
+
+        .upload-container {
+            background-color: white;
+            padding: 2rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 2rem;
+        }
+
+        .upload-container h1 {
+            color: #333;
+            margin-bottom: 1.5rem;
+            font-size: 1.8rem;
+        }
+
+        .file-input {
+            padding: 0.8rem 1.2rem;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            margin-right: 1rem;
+        }
+
+        .error-message {
+            color: #dc3545;
+            margin-top: 1rem;
+            font-weight: 500;
+        }
+
+        .success-message {
+            color: #28a745;
+            margin-top: 1rem;
+            font-weight: 500;
+        }
+
+        .tables-container {
+            display: flex;
+            flex-direction: column;
+            gap: 2rem; /* 多个表格之间的间距 */
+        }
+
+        .table-container {
+            background-color: white;
+            padding: 2rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            overflow-x: auto;
+        }
+
+        .table-container h2 {
+            color: #333;
+            margin-bottom: 1rem;
+            font-size: 1.5rem;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1rem;
+        }
+
+        th, td {
+            padding: 0.8rem 1rem;
+            text-align: left;
+            border: 1px solid #ddd;
+        }
+
+        th {
+            background-color: #f8f9fa;
+            font-weight: 600;
+        }
+
+        tr:nth-child(even) {
+            background-color: #f8f9fa;
+        }
+    </style>
+</head>
+<body>
+    <div class="upload-container">
+        <h1>XML分区表解析工具</h1>
+        <!-- 新增multiple属性，支持多选文件 -->
+        <input type="file" class="file-input" id="xmlFileInput" accept=".xml" multiple>
+        <div id="message"></div>
+    </div>
+
+    <!-- 改为父容器，用于承载多个文件的表格 -->
+    <div class="tables-container" id="tablesContainer" style="display: none;"></div>
+
+    <script>
+        // 解析patch类型的XML（对应原Python的parse_patch_xml函数）
+        function parsePatchXml(root) {
+            const headers = [
+                "文件名", "物理分区号", "起始扇区", "字节偏移",
+                "大小(字节)", "值", "描述"
+            ];
+            const data = [];
+
+            // 获取所有patch节点
+            const patchNodes = root.getElementsByTagName('patch');
+            for (let patch of patchNodes) {
+                const row = [
+                    patch.getAttribute('filename') || '',
+                    patch.getAttribute('physical_partition_number') || '',
+                    patch.getAttribute('start_sector') || '',
+                    patch.getAttribute('byte_offset') || '',
+                    patch.getAttribute('size_in_bytes') || '',
+                    patch.getAttribute('value') || '',
+                    patch.getAttribute('what') || ''
+                ];
+                data.push(row);
+            }
+
+            return { headers, data };
+        }
+
+        // 解析program类型的XML（对应原Python的parse_program_xml函数）
+        function parseProgramXml(root) {
+            const headers = [
+                "标签", "文件名", "起始扇区", "起始地址(十六进制)",
+                "分区扇区数", "大小(KB)", "是否稀疏"
+            ];
+            const data = [];
+
+            // 获取所有program节点
+            const programNodes = root.getElementsByTagName('program');
+            for (let program of programNodes) {
+                const row = [
+                    program.getAttribute('label') || '',
+                    program.getAttribute('filename') || '',
+                    program.getAttribute('start_sector') || '',
+                    program.getAttribute('start_byte_hex') || '',
+                    program.getAttribute('num_partition_sectors') || '',
+                    program.getAttribute('size_in_KB') || '',
+                    program.getAttribute('sparse') || ''
+                ];
+                data.push(row);
+            }
+
+            return { headers, data };
+        }
+
+        // 生成HTML表格（改为返回表格元素，而非直接操作DOM）
+        function generateTable(headers, data) {
+            const table = document.createElement('table');
+
+            // 创建表头
+            const thead = document.createElement('thead');
+            const headerRow = document.createElement('tr');
+            headers.forEach(header => {
+                const th = document.createElement('th');
+                th.textContent = header;
+                headerRow.appendChild(th);
+            });
+            thead.appendChild(headerRow);
+            table.appendChild(thead);
+
+            // 创建表体
+            const tbody = document.createElement('tbody');
+            data.forEach(row => {
+                const tr = document.createElement('tr');
+                row.forEach(cell => {
+                    const td = document.createElement('td');
+                    td.textContent = cell;
+                    tr.appendChild(td);
+                });
+                tbody.appendChild(tr);
+            });
+            table.appendChild(tbody);
+
+            return table;
+        }
+
+        // 处理单个文件的解析和展示
+        async function handleSingleFile(file, tablesContainer) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    try {
+                        // 解析XML
+                        const xmlContent = event.target.result;
+                        const parser = new DOMParser();
+                        const xmlDoc = parser.parseFromString(xmlContent, 'text/xml');
+
+                        // 检查XML解析错误
+                        const parseError = xmlDoc.getElementsByTagName('parsererror');
+                        if (parseError.length > 0) {
+                            throw new Error('XML文件格式错误，无法解析');
+                        }
+
+                        // 获取根节点
+                        const root = xmlDoc.documentElement;
+                        let result, title;
+
+                        // 根据根标签判断类型
+                        if (root.tagName === 'patches') {
+                            result = parsePatchXml(root);
+                            title = `${file.name} (Patch类型分区表)`;
+                        } else if (root.tagName === 'data') {
+                            result = parseProgramXml(root);
+                            title = `${file.name} (Program类型分区表)`;
+                        } else {
+                            throw new Error(`不支持的XML格式，根标签：${root.tagName}`);
+                        }
+
+                        // 创建单个文件的表格容器
+                        const singleTableContainer = document.createElement('div');
+                        singleTableContainer.className = 'table-container';
+
+                        // 创建标题
+                        const tableTitle = document.createElement('h2');
+                        tableTitle.textContent = title;
+                        singleTableContainer.appendChild(tableTitle);
+
+                        // 生成表格并添加到容器
+                        const table = generateTable(result.headers, result.data);
+                        singleTableContainer.appendChild(table);
+
+                        // 添加到父容器
+                        tablesContainer.appendChild(singleTableContainer);
+
+                        resolve(true);
+                    } catch (error) {
+                        // 创建错误提示的容器
+                        const errorContainer = document.createElement('div');
+                        errorContainer.className = 'table-container';
+                        const errorTitle = document.createElement('h2');
+                        errorTitle.textContent = file.name;
+                        const errorMsg = document.createElement('div');
+                        errorMsg.className = 'error-message';
+                        errorMsg.textContent = `解析失败：${error.message}`;
+                        errorContainer.appendChild(errorTitle);
+                        errorContainer.appendChild(errorMsg);
+                        tablesContainer.appendChild(errorContainer);
+                        resolve(false); // 单个文件失败不影响其他文件
+                    }
+                };
+
+                reader.onerror = function() {
+                    const errorContainer = document.createElement('div');
+                    errorContainer.className = 'table-container';
+                    const errorTitle = document.createElement('h2');
+                    errorTitle.textContent = file.name;
+                    const errorMsg = document.createElement('div');
+                    errorMsg.className = 'error-message';
+                    errorMsg.textContent = '文件读取失败！';
+                    errorContainer.appendChild(errorTitle);
+                    errorContainer.appendChild(errorMsg);
+                    tablesContainer.appendChild(errorContainer);
+                    resolve(false);
+                };
+
+                // 以文本形式读取文件
+                reader.readAsText(file);
+            });
+        }
+
+        // 处理文件上传（重构为支持多文件）
+        document.getElementById('xmlFileInput').addEventListener('change', async function(e) {
+            const files = e.target.files; // 获取所有选中的文件（FileList）
+            const message = document.getElementById('message');
+            const tablesContainer = document.getElementById('tablesContainer');
+
+            // 清空之前的状态
+            message.innerHTML = '';
+            tablesContainer.innerHTML = ''; // 清空所有之前的表格
+            tablesContainer.style.display = 'none';
+
+            if (files.length === 0) {
+                return;
+            }
+
+            // 检查所有文件是否为XML格式
+            const invalidFiles = Array.from(files).filter(file => 
+                file.type !== 'text/xml' && !file.name.endsWith('.xml')
+            );
+
+            if (invalidFiles.length > 0) {
+                message.innerHTML = `<div class="error-message">错误：以下文件不是XML格式：${invalidFiles.map(f => f.name).join(', ')}</div>`;
+                // 仍然处理有效文件
+                if (files.length - invalidFiles.length === 0) {
+                    return;
+                }
+            }
+
+            // 显示表格容器
+            tablesContainer.style.display = 'flex';
+
+            // 遍历所有文件并处理
+            const results = [];
+            for (const file of files) {
+                // 跳过无效文件
+                if (file.type !== 'text/xml' && !file.name.endsWith('.xml')) {
+                    continue;
+                }
+                results.push(await handleSingleFile(file, tablesContainer));
+            }
+
+            // 显示总体结果
+            const successCount = results.filter(r => r).length;
+            const totalCount = results.length;
+            if (successCount === totalCount) {
+                message.innerHTML = `<div class="success-message">成功解析${totalCount}个XML文件！</div>`;
+            } else {
+                message.innerHTML = `<div class="success-message">成功解析${successCount}个XML文件，${totalCount - successCount}个文件解析失败！</div>`;
+            }
+        });
+    </script>
+</body>
+</html>
