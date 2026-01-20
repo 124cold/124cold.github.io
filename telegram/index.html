@@ -2,32 +2,363 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <title>telegram教程</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Telegram 账号使用指南</title>
+    <style>
+        /* 全局重置与基础样式 */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #2A5ADA;
+            --primary-light: #EBF0FF;
+            --success: #10B981;
+            --warning: #F59E0B;
+            --danger: #EF4444;
+            --danger-light: #FEE2E2;
+            --text-primary: #1F2937;
+            --text-secondary: #6B7280;
+            --bg-body: #F9FAFB;
+            --bg-card: #FFFFFF;
+            --border: #E5E7EB;
+            --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            --radius-sm: 6px;
+            --radius: 8px;
+            --radius-lg: 12px;
+            --transition: all 0.2s ease;
+        }
+
+        body {
+            font-family: "Inter", "PingFang SC", "Microsoft YaHei", sans-serif;
+            line-height: 1.6;
+            color: var(--text-primary);
+            background-color: var(--bg-body);
+            padding: 24px 16px;
+            min-height: 100vh;
+        }
+
+        /* 主容器 */
+        .guide-container {
+            max-width: 720px;
+            margin: 0 auto;
+            background-color: var(--bg-card);
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow);
+            overflow: hidden;
+        }
+
+        /* 头部区域 */
+        .guide-header {
+            background-color: var(--primary);
+            color: white;
+            padding: 20px 24px;
+            text-align: center;
+        }
+
+        .guide-header h1 {
+            font-size: 20px;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .guide-header p {
+            font-size: 14px;
+            opacity: 0.9;
+            max-width: 500px;
+            margin: 0 auto;
+        }
+
+        /* 内容区域 */
+        .guide-content {
+            padding: 24px;
+        }
+
+        /* 卡片组件 */
+        .guide-card {
+            margin-bottom: 24px;
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            overflow: hidden;
+            transition: var(--transition);
+        }
+
+        .guide-card:hover {
+            box-shadow: var(--shadow-sm);
+        }
+
+        .card-header {
+            padding: 16px 20px;
+            background-color: var(--primary-light);
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .card-header .icon {
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: var(--primary);
+            color: white;
+            border-radius: 50%;
+            font-size: 12px;
+        }
+
+        .card-header h2 {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--primary);
+        }
+
+        .card-body {
+            padding: 20px;
+        }
+
+        /* 信息项 */
+        .info-item {
+            margin-bottom: 16px;
+            font-size: 15px;
+        }
+
+        .info-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .info-item label {
+            display: block;
+            font-weight: 500;
+            margin-bottom: 6px;
+            color: var(--text-secondary);
+            font-size: 14px;
+        }
+
+        .info-item .value {
+            display: block;
+            padding: 10px 12px;
+            background-color: var(--bg-body);
+            border-radius: var(--radius-sm);
+            word-break: break-all;
+        }
+
+        /* 链接样式 */
+        .link-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 16px;
+            background-color: var(--primary);
+            color: white;
+            text-decoration: none;
+            border-radius: var(--radius-sm);
+            font-size: 14px;
+            font-weight: 500;
+            transition: var(--transition);
+            border: none;
+            cursor: pointer;
+            margin-top: 8px;
+        }
+
+        .link-btn:hover {
+            background-color: #1E40AF;
+        }
+
+        .link-btn.success {
+            background-color: var(--success);
+        }
+
+        .link-btn.success:hover {
+            background-color: #059669;
+        }
+
+        /* 警告提示 */
+        .warning-box {
+            padding: 16px;
+            background-color: var(--danger-light);
+            border-left: 4px solid var(--danger);
+            border-radius: var(--radius-sm);
+            margin-top: 16px;
+        }
+
+        .warning-box p {
+            color: var(--danger);
+            font-weight: 500;
+            font-size: 14px;
+        }
+
+        /* 操作步骤 */
+        .steps {
+            list-style: none;
+            counter-reset: step-counter;
+        }
+
+        .steps li {
+            position: relative;
+            padding-left: 32px;
+            margin-bottom: 12px;
+            padding-bottom: 12px;
+            border-bottom: 1px dashed var(--border);
+        }
+
+        .steps li:last-child {
+            margin-bottom: 0;
+            padding-bottom: 0;
+            border-bottom: none;
+        }
+
+        .steps li::before {
+            content: counter(step-counter);
+            counter-increment: step-counter;
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 24px;
+            height: 24px;
+            background-color: var(--primary);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        /* 响应式适配 */
+        @media (max-width: 600px) {
+            .guide-content {
+                padding: 16px;
+            }
+            
+            .card-body {
+                padding: 16px;
+            }
+            
+            .link-btn {
+                width: 100%;
+                justify-content: center;
+            }
+        }
+    </style>
 </head>
 <body>
-    <div class="center-text">
-    看见这里了，那就是买过telegram号了，放心这个网站打不死，最多打死的就是节点，如果被打死了，切换海外ip一样可以看
+    <div class="guide-container">
+        <!-- 头部 -->
+        <div class="guide-header">
+            <h1>Telegram 账号使用指南</h1>
+            <p>看见这里了，那就是买过telegram号了，放心这个网站打不死，最多打死的就是节点，如果被打死了，切换海外ip一样可以看</p>
+        </div>
+
+        <!-- 内容区域 -->
+        <div class="guide-content">
+            <!-- 账号信息卡片 -->
+            <div class="guide-card">
+                <div class="card-header">
+                    <span class="icon">1</span>
+                    <h2>账号核心信息</h2>
+                </div>
+                <div class="card-body">
+                    <div class="info-item">
+                        <label>发货/登录手机号</label>
+                        <span class="value">+1325666322</span>
+                    </div>
+                    <div class="info-item">
+                        <label>验证码接收/查看地址</label>
+                        <span class="value">https://xxxxxx.com/tgapi/0ea3baef-4d23-4154-a7fc-648d244f5995/GetHTML</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 推荐工具卡片 -->
+            <div class="guide-card">
+                <div class="card-header">
+                    <span class="icon">2</span>
+                    <h2>推荐使用工具</h2>
+                </div>
+                <div class="card-body">
+                    <div class="info-item">
+                        <label>推荐加速器</label>
+                        <span class="value">https://24.lcvpn.top</span>
+                        <button class="link-btn" onclick="copyToClipboard('https://24.lcvpn.top', this)">复制加速器链接</button>
+                    </div>
+                    <div class="info-item">
+                        <label>推荐客户端（Nicegram）</label>
+                        <span class="value">https://github.com/nicegram/Nicegram-Android/releases/tag/1.46.2</span>
+                        <button class="link-btn" onclick="copyToClipboard('https://github.com/nicegram/Nicegram-Android/releases/tag/1.46.2', this)">复制下载地址</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 操作指引卡片 -->
+            <div class="guide-card">
+                <div class="card-header">
+                    <span class="icon">3</span>
+                    <h2>操作指引</h2>
+                </div>
+                <div class="card-body">
+                    <ul class="steps">
+                        <li>接收验证码后，通过上方「验证码接收地址」查看验证码和二级密码</li>
+                        <li>使用推荐的Nicegram客户端登录账号</li>
+                        <li>登录成功后，<strong>立即</strong>修改账号邮箱和二级密码</li>
+                        <li>确保使用稳定的加速器节点访问Telegram</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- 重要提示卡片 -->
+            <div class="guide-card">
+                <div class="card-header">
+                    <span class="icon">⚠</span>
+                    <h2>重要注意事项</h2>
+                </div>
+                <div class="card-body">
+                    <div class="warning-box">
+                        <p>🔔 一人一号，请使用老设备登录；海外手机号主要采用验证码登录方式，务必妥善保管验证码接收地址，避免泄露！</p>
+                        <p>🔔 请妥善保存账号二级密码，丢失了将没有任何人知道</p>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
+
+    <script>
+        // 复制功能
+        function copyToClipboard(text, btn) {
+            // 保存原始按钮文本
+            const originalText = btn.textContent;
+            
+            // 使用Clipboard API复制
+            navigator.clipboard.writeText(text).then(() => {
+                // 更新按钮状态
+                btn.textContent = "复制成功 ✔";
+                btn.classList.add("success");
+                
+                // 2秒后恢复原始状态
+                setTimeout(() => {
+                    btn.textContent = originalText;
+                    btn.classList.remove("success");
+                }, 2000);
+            }).catch(err => {
+                alert('复制失败，请手动复制：' + text);
+                console.error('复制失败:', err);
+            });
+        }
+
+        // 页面加载完成后的优化
+        document.addEventListener('DOMContentLoaded', () => {
+            // 为所有链接添加新窗口打开属性（如果需要）
+            const allLinks = document.querySelectorAll('a');
+            allLinks.forEach(link => {
+                link.target = '_blank';
+                link.rel = 'noopener noreferrer';
+            });
+        });
+    </script>
 </body>
-<h3>-------------------------------------------------------------------------------------------</h3>
-<h3>教程？会的人压根不需要教程</h3>
-<h4>发货为+1325666322----https://xxxxxx.com/tgapi/0ea3baef-4d23-4154-a7fc-648d244f5995/GetHTML</h4>
-<h4>手机号：+1325666322</h4>
-<h4>验证码接收地址：https://xxxxxx.com/tgapi/0ea3baef-4d23-4154-a7fc-648d244f5995/GetHTML</h4>
-<h3>-------------------------------------------------------------------------------------------</h3>
-<h3>本网站推荐加速器https://24.lcvpn.top</h3>
-<h3>本网站推荐加速器https://24.lcvpn.top</h3>
-<h3>-------------------------------------------------------------------------------------------</h3>
-<h3>建议使用Nicegram客户端</h3>
-<h3>下载地址：https://github.com/nicegram/Nicegram-Android/releases/tag/1.46.2</h3>
-<h3>-------------------------------------------------------------------------------------------</h3>
-<h3>接收验证码之后在https://xxxxxx.com/tgapi/0ea3baef-4d23-4154-a7fc-648d244f5995/GetHTML</h3>
-<h3>查看验证码和二级密码</h3>
-<h3>-------------------------------------------------------------------------------------------</h3>
-<h3>上号之后更改邮箱和二级密码即可</h3>
-<h3>-------------------------------------------------------------------------------------------</h3>
-<h3>注：一人一号，找老设备登录，海外手机号大多是验证码登录</h3>
-<h3>注：一人一号，找老设备登录，海外手机号大多是验证码登录</h3>
-<h3>注：一人一号，找老设备登录，海外手机号大多是验证码登录</h3>
-<h3>注：一人一号，找老设备登录，海外手机号大多是验证码登录</h3>
 </html>
