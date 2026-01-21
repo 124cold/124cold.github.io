@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UUID 生成器</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: Arial, sans-serif;
+        }
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            background-color: #f5f5f5;
+            padding: 20px;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            width: 100%;
+            max-width: 500px;
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 24px;
+        }
+        .uuid-result {
+            width: 100%;
+            padding: 12px 16px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            margin-bottom: 15px;
+            font-size: 16px;
+            word-break: break-all;
+            color: #333;
+        }
+        .btn-group {
+            display: flex;
+            gap: 10px;
+        }
+        button {
+            flex: 1;
+            padding: 10px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.2s;
+        }
+        #generateBtn {
+            background-color: #007bff;
+            color: white;
+        }
+        #generateBtn:hover {
+            background-color: #0056b3;
+        }
+        #copyBtn {
+            background-color: #28a745;
+            color: white;
+        }
+        #copyBtn:hover {
+            background-color: #1e7e34;
+        }
+        .tip {
+            margin-top: 15px;
+            text-align: center;
+            color: #666;
+            font-size: 14px;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>UUID 生成器</h1>
+        <div class="uuid-result" id="uuidResult">点击下方按钮生成 UUID</div>
+        <div class="btn-group">
+            <button id="generateBtn">生成 UUID</button>
+            <button id="copyBtn">复制 UUID</button>
+        </div>
+        <div class="tip" id="tip">复制成功！</div>
+    </div>
+
+    <script>
+        // 获取页面元素
+        const uuidResult = document.getElementById('uuidResult');
+        const generateBtn = document.getElementById('generateBtn');
+        const copyBtn = document.getElementById('copyBtn');
+        const tip = document.getElementById('tip');
+
+        // 生成 UUID 的核心函数（符合 RFC4122 标准的 UUID v4）
+        function generateUUID() {
+            return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+                const r = Math.random() * 16 | 0;
+                const v = c === 'x' ? r : (r & 0x3 | 0x8);
+                return v.toString(16);
+            });
+        }
+
+        // 生成按钮点击事件
+        generateBtn.addEventListener('click', function() {
+            const uuid = generateUUID();
+            uuidResult.textContent = uuid;
+        });
+
+        // 复制按钮点击事件
+        copyBtn.addEventListener('click', function() {
+            // 复制文本到剪贴板
+            navigator.clipboard.writeText(uuidResult.textContent)
+                .then(() => {
+                    // 显示复制成功提示
+                    tip.style.display = 'block';
+                    // 2 秒后隐藏提示
+                    setTimeout(() => {
+                        tip.style.display = 'none';
+                    }, 2000);
+                })
+                .catch(err => {
+                    alert('复制失败：' + err);
+                });
+        });
+
+        // 页面加载时自动生成一个 UUID
+        window.onload = function() {
+            uuidResult.textContent = generateUUID();
+        };
+    </script>
+</body>
+</html>
