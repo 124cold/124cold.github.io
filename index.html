@@ -2,136 +2,449 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Cloudflare节点复制工具</title>
     <style>
+        /* 全局样式 - 参考ColorOS简约高级风格 */
+        :root {
+            --primary-color: #007dff;
+            --success-color: #00c48c;
+            --warning-color: #ff9500;
+            --danger-color: #ff3b30;
+            --text-primary: #1d2129;
+            --text-secondary: #4e5969;
+            --text-tertiary: #86909c;
+            --bg-primary: #ffffff;
+            --bg-secondary: #f7f8fa;
+            --bg-gradient: linear-gradient(135deg, #f5f7fa 0%, #e4e9f0 100%);
+            --border-color: #e5e9f2;
+            --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.06);
+            --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.08);
+            --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.12);
+            --radius-sm: 8px;
+            --radius-md: 12px;
+            --radius-lg: 16px;
+            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
         }
+
+        html, body {
+            height: 100%;
+            font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
+            color: var(--text-primary);
+            background: var(--bg-secondary);
+            line-height: 1.5;
+        }
+
         body {
-            font-family: "Microsoft YaHei", Arial, sans-serif;
-            padding: 40px;
-            max-width: 800px;
+            padding: 0;
+            max-width: 1200px;
             margin: 0 auto;
         }
-        /* 顶部信息栏样式 */
-        .header-info {
-            background: #f0f8ff;
-            border: 1px solid #66afe9;
-            border-radius: 8px;
-            padding: 20px;
-            margin-bottom: 30px;
-            text-align: center;
+
+        /* 顶部导航栏 - ColorOS风格 */
+        .navbar {
+            background: var(--bg-primary);
+            padding: 16px 24px;
+            box-shadow: var(--shadow-sm);
+            position: sticky;
+            top: 0;
+            z-index: 100;
         }
-        .header-title {
-            font-size: 20px;
-            color: #2d6a9f;
-            margin-bottom: 8px;
+
+        .navbar-container {
+            max-width: 1000px;
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .navbar-logo {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .logo-icon {
+            width: 28px;
+            height: 28px;
+            background: var(--primary-color);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
             font-weight: bold;
         }
-        .header-desc {
-            font-size: 16px;
-            color: #e63946;
-            font-weight: 500;
+
+        .logo-text {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--text-primary);
         }
-        h3 {
-            color: #333;
-            margin-top: 25px;
-            margin-bottom: 10px;
-        }
-        h3:first-of-type {
-            margin-top: 0;
-        }
-        .box {
-            border: 1px solid #ccc;
-            border-radius: 6px;
-            padding: 18px;
-            margin-top: 10px;
-            background: #f8f8f8;
-            cursor: pointer;
-            width: 100%;
-            max-width: 500px;
-            user-select: none;
-            transition: all 0.2s ease;
-            word-break: break-all;
-        }
-        .box:hover {
-            border-color: #66afe9;
-            background: #f0f8ff;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-        }
-        .box.copied {
-            border-color: #5cb85c;
-            background: #f0fff0;
-        }
-        .tip {
-            color: #666;
+
+        .navbar-version {
             font-size: 14px;
-            margin-top: 8px;
-            display: none;
+            color: var(--text-tertiary);
         }
-        .tip.show {
-            display: block;
+
+        /* 主内容区 */
+        .main-container {
+            padding: 32px 24px;
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        /* 头部卡片 - 参考ColorOS的信息卡片 */
+        .info-card {
+            background: var(--bg-primary);
+            border-radius: var(--radius-lg);
+            padding: 28px 24px;
+            margin-bottom: 32px;
+            box-shadow: var(--shadow-md);
+            border: 1px solid var(--border-color);
+        }
+
+        .info-title {
+            font-size: 22px;
+            font-weight: 600;
+            color: var(--primary-color);
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .info-title::before {
+            content: "";
+            width: 4px;
+            height: 24px;
+            background: var(--primary-color);
+            border-radius: 2px;
+        }
+
+        .info-desc {
+            font-size: 16px;
+            color: var(--danger-color);
+            margin-bottom: 20px;
+            line-height: 1.6;
+        }
+
+        .info-pay {
+            font-size: 14px;
+            color: var(--text-secondary);
+            line-height: 1.8;
+            background: var(--bg-secondary);
+            padding: 12px 16px;
+            border-radius: var(--radius-sm);
+        }
+
+        /* 节点列表区域 */
+        .nodes-section {
+            margin-bottom: 40px;
+        }
+
+        .section-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+
+        .section-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .section-title::before {
+            content: "";
+            width: 3px;
+            height: 20px;
+            background: var(--primary-color);
+            border-radius: 1.5px;
+        }
+
+        .section-hint {
+            font-size: 12px;
+            color: var(--text-tertiary);
+        }
+
+        /* 节点卡片 - ColorOS风格的卡片设计 */
+        .node-card {
+            background: var(--bg-primary);
+            border-radius: var(--radius-md);
+            padding: 20px 24px;
+            margin-bottom: 16px;
+            box-shadow: var(--shadow-sm);
+            border: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            cursor: pointer;
+            transition: var(--transition);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .node-card:hover {
+            border-color: var(--primary-color);
+            box-shadow: var(--shadow-lg);
+            transform: translateY(-2px);
+        }
+
+        .node-card.copied {
+            border-color: var(--success-color);
+            background: #f0fff9;
+        }
+
+        .node-url {
+            font-size: 15px;
+            color: var(--text-secondary);
+            word-break: break-all;
+            flex: 1;
+            padding-right: 20px;
+        }
+
+        .copy-btn {
+            min-width: 80px;
+            height: 36px;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-sm);
+            color: var(--text-primary);
+            font-size: 14px;
+            cursor: pointer;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+
+        .node-card:hover .copy-btn {
+            background: var(--primary-color);
+            color: white;
+            border-color: var(--primary-color);
+        }
+
+        .node-card.copied .copy-btn {
+            background: var(--success-color);
+            color: white;
+            border-color: var(--success-color);
+        }
+
+        /* 复制成功提示 */
+        .copy-toast {
+            position: absolute;
+            top: 0;
+            right: 0;
+            background: var(--success-color);
+            color: white;
+            font-size: 12px;
+            padding: 4px 12px;
+            border-bottom-left-radius: var(--radius-sm);
+            opacity: 0;
+            transform: translateY(-100%);
+            transition: var(--transition);
+        }
+
+        .node-card.copied .copy-toast {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* 底部信息 */
+        .footer {
+            text-align: center;
+            padding: 24px;
+            font-size: 13px;
+            color: var(--text-tertiary);
+            border-top: 1px solid var(--border-color);
+            margin-top: 40px;
+        }
+
+        /* 响应式适配 */
+        @media (max-width: 768px) {
+            .navbar {
+                padding: 12px 16px;
+            }
+
+            .main-container {
+                padding: 24px 16px;
+            }
+
+            .info-card {
+                padding: 20px 16px;
+                margin-bottom: 24px;
+            }
+
+            .info-title {
+                font-size: 20px;
+            }
+
+            .node-card {
+                padding: 16px 20px;
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 16px;
+            }
+
+            .node-url {
+                padding-right: 0;
+                margin-bottom: 8px;
+            }
+
+            .copy-btn {
+                align-self: flex-end;
+                width: 100%;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .navbar {
+                padding: 10px 12px;
+            }
+
+            .main-container {
+                padding: 20px 12px;
+            }
+
+            .info-card {
+                padding: 16px 12px;
+            }
+
+            .info-title {
+                font-size: 18px;
+            }
+
+            .info-desc {
+                font-size: 14px;
+            }
+
+            .node-card {
+                padding: 14px 16px;
+            }
         }
     </style>
 </head>
 <body>
-    <!-- 顶部信息栏 -->
-    <div class="header-info">
-        <div class="header-title">免费Cloudflare优选节点</div>
-        <div class="header-desc">作者Q：1104382467 | 全部免费 禁止付费传播</div>
-        <h6>作者Q：1104382467 | 全部免费 禁止付费传播</h6>
-    </div>
+    <!-- 顶部导航栏 -->
+    <nav class="navbar">
+        <div class="navbar-container">
+            <div class="navbar-logo">
+                <div class="logo-icon">CF</div>
+                <div class="logo-text">Cloudflare 节点工具</div>
+            </div>
+            <div class="navbar-version">v1.0</div>
+        </div>
+    </nav>
 
-    <h3>Cloudflare精选节点 -1选项</h3>
-    <div class="box" data-text="https://orange-math-02b8.qet1232007.workers.dev/e7d272ff-3318-470a-9a43-8f894f98550f/cl">
-        https://orange-math-02b8.qet1232007.workers.dev/e7d272ff-3318-470a-9a43-8f894f98550f/cl
-    </div>
-    <div class="tip">点击已复制到剪贴板 ✅</div>
+    <!-- 主内容区 -->
+    <main class="main-container">
+        <!-- 信息卡片 -->
+        <div class="info-card">
+            <h2 class="info-title">免费Cloudflare优选节点</h2>
+            <p class="info-desc">作者Q：1104382467 | 全部免费 禁止付费传播</p>
+            <div class="info-pay">
+                有过期的U、不要的U可以扔给作者   👇👇👇👇👇<br>
+                作者okpay ID:8161457050    Tron20 地址：TLDHz3L4hz14jTaXASjCWyThzUDr4dnTxX
+            </div>
+        </div>
 
-    <h3>Cloudflare精选节点 -2选项</h3>
-    <div class="box" data-text="https://steep-star-5abe.qet1232007.workers.dev/e7d272ff-3318-470a-9a43-8f894f98550f/cl">
-        https://steep-star-5abe.qet1232007.workers.dev/e7d272ff-3318-470a-9a43-8f894f98550f/cl
-    </div>
-    <div class="tip">点击已复制到剪贴板 ✅</div>
-  
+        <!-- 节点列表 -->
+        <div class="nodes-section">
+            <div class="section-header">
+                <h3 class="section-title">Cloudflare 精选节点</h3>
+                <span class="section-hint">点击卡片复制链接</span>
+            </div>
+
+            <!-- 节点1 -->
+            <div class="node-card" data-text="https://orange-math-02b8.qet1232007.workers.dev/e7d272ff-3318-470a-9a43-8f894f98550f/cl">
+                <div class="node-url">https://orange-math-02b8.qet1232007.workers.dev/e7d272ff-3318-470a-9a43-8f894f98550f/cl</div>
+                <button class="copy-btn">复制</button>
+                <div class="copy-toast">已复制到剪贴板</div>
+            </div>
+
+            <!-- 节点2 -->
+            <div class="node-card" data-text="https://steep-star-5abe.qet1232007.workers.dev/e7d272ff-3318-470a-9a43-8f894f98550f/cl">
+                <div class="node-url">https://steep-star-5abe.qet1232007.workers.dev/e7d272ff-3318-470a-9a43-8f894f98550f/cl</div>
+                <button class="copy-btn">复制</button>
+                <div class="copy-toast">已复制到剪贴板</div>
+            </div>
+
+            <!-- 节点3 -->
+            <div class="node-card" data-text="https://lively-star-fc46.qet1232007.workers.dev/e7d272ff-3318-470a-9a43-8f894f98550f/cl">
+                <div class="node-url">https://lively-star-fc46.qet1232007.workers.dev/e7d272ff-3318-470a-9a43-8f894f98550f/cl</div>
+                <button class="copy-btn">复制</button>
+                <div class="copy-toast">已复制到剪贴板</div>
+            </div>
+
+            <!-- 节点4 -->
+            <div class="node-card" data-text="https://lingering-violet-29cb.qet1232007.workers.dev/e7d272ff-3318-470a-9a43-8f894f98550f/cl">
+                <div class="node-url">https://lingering-violet-29cb.qet1232007.workers.dev/e7d272ff-3318-470a-9a43-8f894f98550f/cl</div>
+                <button class="copy-btn">复制</button>
+                <div class="copy-toast">已复制到剪贴板</div>
+            </div>
+        </div>
+    </main>
+
+    <!-- 底部信息 -->
+    <footer class="footer">
+        © 2025 Cloudflare节点工具 - 免费使用 请勿商用
+    </footer>
+
     <script>
-        // 获取所有复制盒子和提示框
-        const boxes = document.querySelectorAll('.box');
-        const tips = document.querySelectorAll('.tip');
+        // 复制功能逻辑
+        const nodeCards = document.querySelectorAll('.node-card');
 
-        // 复制文本函数
-        function copyText(event) {
-            // 获取当前点击的盒子
-            const targetBox = event.currentTarget;
-            // 从data属性获取要复制的纯文本链接，拼接<div>标签
-            const textToCopy = `<div>${targetBox.dataset.text}</div>`;
+        function copyNodeUrl(event) {
+            // 阻止事件冒泡，避免重复触发
+            event.stopPropagation();
+            
+            // 获取当前节点卡片（兼容点击卡片或复制按钮）
+            const card = event.currentTarget.classList.contains('node-card') 
+                ? event.currentTarget 
+                : event.currentTarget.closest('.node-card');
+            
+            const textToCopy = card.dataset.text;
             
             try {
-                // 复制到剪贴板（包含<div>标签）
+                // 复制纯文本（移除之前的div标签）
                 navigator.clipboard.writeText(textToCopy);
                 
-                // 高亮显示已复制状态
-                targetBox.classList.add('copied');
-                // 显示提示框
-                const tip = targetBox.nextElementSibling;
-                tip.classList.add('show');
+                // 重置所有卡片状态
+                nodeCards.forEach(c => {
+                    c.classList.remove('copied');
+                });
                 
-                // 2秒后恢复样式
+                // 设置当前卡片状态
+                card.classList.add('copied');
+                
+                // 2秒后恢复状态
                 setTimeout(() => {
-                    targetBox.classList.remove('copied');
-                    tip.classList.remove('show');
+                    card.classList.remove('copied');
                 }, 2000);
+                
             } catch (err) {
                 alert('复制失败！请手动复制，错误信息：' + err);
             }
         }
 
-        // 为每个盒子绑定点击事件
-        boxes.forEach(box => {
-            box.addEventListener('click', copyText);
+        // 绑定点击事件（卡片和按钮都可触发）
+        nodeCards.forEach(card => {
+            card.addEventListener('click', copyNodeUrl);
+            const btn = card.querySelector('.copy-btn');
+            btn.addEventListener('click', copyNodeUrl);
         });
     </script>
 </body>
