@@ -1,0 +1,269 @@
+port: 7890
+allow-lan: true
+mode: rule
+log-level: info
+unified-delay: true
+global-client-fingerprint: chrome
+dns:
+  enable: false
+  listen: :53
+  ipv6: true
+  enhanced-mode: fake-ip
+  fake-ip-range: 198.18.0.1/16
+  default-nameserver: 
+    - 223.5.5.5
+    - 114.114.114.114
+    - 8.8.8.8
+  nameserver:
+    - https://dns.alidns.com/dns-query
+    - https://doh.pub/dns-query
+  fallback:
+    - https://1.0.0.1/dns-query
+    - tls://dns.google
+  fallback-filter:
+    geoip: true
+    geoip-code: CN
+    ipcidr:
+      - 240.0.0.0/4
+
+proxies:
+- name: CF_V1_yg1.ygkkk.dpdns.org_80
+  type: vless
+  server: yg1.ygkkk.dpdns.org
+  port: 80
+  uuid: e7d272ff-3318-470a-9a43-8f894f98550f
+  udp: false
+  tls: false
+  network: ws
+  ws-opts:
+    path: "/?ed=2560"
+    headers:
+      Host: orange-math-02b8.qet1232007.workers.dev
+
+- name: CF_V2_yg2.ygkkk.dpdns.org_8080
+  type: vless
+  server: yg2.ygkkk.dpdns.org
+  port: 8080
+  uuid: e7d272ff-3318-470a-9a43-8f894f98550f
+  udp: false
+  tls: false
+  network: ws
+  ws-opts:
+    path: "/?ed=2560"
+    headers:
+      Host: orange-math-02b8.qet1232007.workers.dev
+
+- name: CF_V3_yg3.ygkkk.dpdns.org_8880
+  type: vless
+  server: yg3.ygkkk.dpdns.org
+  port: 8880
+  uuid: e7d272ff-3318-470a-9a43-8f894f98550f
+  udp: false
+  tls: false
+  network: ws
+  ws-opts:
+    path: "/?ed=2560"
+    headers:
+      Host: orange-math-02b8.qet1232007.workers.dev
+
+- name: CF_V4_yg4.ygkkk.dpdns.org_2052
+  type: vless
+  server: yg4.ygkkk.dpdns.org
+  port: 2052
+  uuid: e7d272ff-3318-470a-9a43-8f894f98550f
+  udp: false
+  tls: false
+  network: ws
+  ws-opts:
+    path: "/?ed=2560"
+    headers:
+      Host: orange-math-02b8.qet1232007.workers.dev
+
+- name: CF_V5_yg5.ygkkk.dpdns.org_2082
+  type: vless
+  server: yg5.ygkkk.dpdns.org
+  port: 2082
+  uuid: e7d272ff-3318-470a-9a43-8f894f98550f
+  udp: false
+  tls: false
+  network: ws
+  ws-opts:
+    path: "/?ed=2560"
+    headers:
+      Host: orange-math-02b8.qet1232007.workers.dev
+
+- name: CF_V6_yg6.ygkkk.dpdns.org_2086
+  type: vless
+  server: yg6.ygkkk.dpdns.org
+  port: 2086
+  uuid: e7d272ff-3318-470a-9a43-8f894f98550f
+  udp: false
+  tls: false
+  network: ws
+  ws-opts:
+    path: "/?ed=2560"
+    headers:
+      Host: orange-math-02b8.qet1232007.workers.dev
+
+- name: CF_V7_yg7.ygkkk.dpdns.org_2095
+  type: vless
+  server: yg7.ygkkk.dpdns.org
+  port: 2095
+  uuid: e7d272ff-3318-470a-9a43-8f894f98550f
+  udp: false
+  tls: false
+  network: ws
+  servername: orange-math-02b8.qet1232007.workers.dev
+  ws-opts:
+    path: "/?ed=2560"
+    headers:
+      Host: orange-math-02b8.qet1232007.workers.dev
+
+- name: CF_V8_yg8.ygkkk.dpdns.org_443
+  type: vless
+  server: yg8.ygkkk.dpdns.org
+  port: 443
+  uuid: e7d272ff-3318-470a-9a43-8f894f98550f
+  udp: false
+  tls: true
+  network: ws
+  servername: orange-math-02b8.qet1232007.workers.dev
+  ws-opts:
+    path: "/?ed=2560"
+    headers:
+      Host: orange-math-02b8.qet1232007.workers.dev
+
+- name: CF_V9_yg9.ygkkk.dpdns.org_8443
+  type: vless
+  server: yg9.ygkkk.dpdns.org
+  port: 8443
+  uuid: e7d272ff-3318-470a-9a43-8f894f98550f
+  udp: false
+  tls: true
+  network: ws
+  servername: orange-math-02b8.qet1232007.workers.dev
+  ws-opts:
+    path: "/?ed=2560"
+    headers:
+      Host: orange-math-02b8.qet1232007.workers.dev
+
+- name: CF_V10_yg10.ygkkk.dpdns.org_2053
+  type: vless
+  server: yg10.ygkkk.dpdns.org
+  port: 2053
+  uuid: e7d272ff-3318-470a-9a43-8f894f98550f
+  udp: false
+  tls: true
+  network: ws
+  servername: orange-math-02b8.qet1232007.workers.dev
+  ws-opts:
+    path: "/?ed=2560"
+    headers:
+      Host: orange-math-02b8.qet1232007.workers.dev
+
+- name: CF_V11_yg11.ygkkk.dpdns.org_2083
+  type: vless
+  server: yg11.ygkkk.dpdns.org
+  port: 2083
+  uuid: e7d272ff-3318-470a-9a43-8f894f98550f
+  udp: false
+  tls: true
+  network: ws
+  servername: orange-math-02b8.qet1232007.workers.dev
+  ws-opts:
+    path: "/?ed=2560"
+    headers:
+      Host: orange-math-02b8.qet1232007.workers.dev
+
+- name: CF_V12_yg12.ygkkk.dpdns.org_2087
+  type: vless
+  server: yg12.ygkkk.dpdns.org
+  port: 2087
+  uuid: e7d272ff-3318-470a-9a43-8f894f98550f
+  udp: false
+  tls: true
+  network: ws
+  servername: orange-math-02b8.qet1232007.workers.dev
+  ws-opts:
+    path: "/?ed=2560"
+    headers:
+      Host: orange-math-02b8.qet1232007.workers.dev
+
+- name: CF_V13_yg13.ygkkk.dpdns.org_2096
+  type: vless
+  server: yg13.ygkkk.dpdns.org
+  port: 2096
+  uuid: e7d272ff-3318-470a-9a43-8f894f98550f
+  udp: false
+  tls: true
+  network: ws
+  servername: orange-math-02b8.qet1232007.workers.dev
+  ws-opts:
+    path: "/?ed=2560"
+    headers:
+      Host: orange-math-02b8.qet1232007.workers.dev
+
+proxy-groups:
+- name: 负载均衡
+  type: load-balance
+  url: http://www.gstatic.com/generate_204
+  interval: 300
+  proxies:
+    - CF_V1_yg1.ygkkk.dpdns.org_80
+    - CF_V2_yg2.ygkkk.dpdns.org_8080
+    - CF_V3_yg3.ygkkk.dpdns.org_8880
+    - CF_V4_yg4.ygkkk.dpdns.org_2052
+    - CF_V5_yg5.ygkkk.dpdns.org_2082
+    - CF_V6_yg6.ygkkk.dpdns.org_2086
+    - CF_V7_yg7.ygkkk.dpdns.org_2095
+    - CF_V8_yg8.ygkkk.dpdns.org_443
+    - CF_V9_yg9.ygkkk.dpdns.org_8443
+    - CF_V10_yg10.ygkkk.dpdns.org_2053
+    - CF_V11_yg11.ygkkk.dpdns.org_2083
+    - CF_V12_yg12.ygkkk.dpdns.org_2087
+    - CF_V13_yg13.ygkkk.dpdns.org_2096
+
+- name: 自动选择
+  type: url-test
+  url: http://www.gstatic.com/generate_204
+  interval: 300
+  tolerance: 50
+  proxies:
+    - CF_V1_yg1.ygkkk.dpdns.org_80
+    - CF_V2_yg2.ygkkk.dpdns.org_8080
+    - CF_V3_yg3.ygkkk.dpdns.org_8880
+    - CF_V4_yg4.ygkkk.dpdns.org_2052
+    - CF_V5_yg5.ygkkk.dpdns.org_2082
+    - CF_V6_yg6.ygkkk.dpdns.org_2086
+    - CF_V7_yg7.ygkkk.dpdns.org_2095
+    - CF_V8_yg8.ygkkk.dpdns.org_443
+    - CF_V9_yg9.ygkkk.dpdns.org_8443
+    - CF_V10_yg10.ygkkk.dpdns.org_2053
+    - CF_V11_yg11.ygkkk.dpdns.org_2083
+    - CF_V12_yg12.ygkkk.dpdns.org_2087
+    - CF_V13_yg13.ygkkk.dpdns.org_2096
+
+- name: 🌍选择代理
+  type: select
+  proxies:
+    - 负载均衡
+    - 自动选择
+    - DIRECT
+    - CF_V1_yg1.ygkkk.dpdns.org_80
+    - CF_V2_yg2.ygkkk.dpdns.org_8080
+    - CF_V3_yg3.ygkkk.dpdns.org_8880
+    - CF_V4_yg4.ygkkk.dpdns.org_2052
+    - CF_V5_yg5.ygkkk.dpdns.org_2082
+    - CF_V6_yg6.ygkkk.dpdns.org_2086
+    - CF_V7_yg7.ygkkk.dpdns.org_2095
+    - CF_V8_yg8.ygkkk.dpdns.org_443
+    - CF_V9_yg9.ygkkk.dpdns.org_8443
+    - CF_V10_yg10.ygkkk.dpdns.org_2053
+    - CF_V11_yg11.ygkkk.dpdns.org_2083
+    - CF_V12_yg12.ygkkk.dpdns.org_2087
+    - CF_V13_yg13.ygkkk.dpdns.org_2096
+
+rules:
+  - GEOIP,LAN,DIRECT
+  - GEOIP,CN,DIRECT
+  - MATCH,🌍选择代理
